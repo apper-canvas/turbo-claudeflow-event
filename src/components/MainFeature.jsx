@@ -144,7 +144,10 @@ function MainFeature() {
             if (jsonData.event === 'content_delta' && 
                 jsonData.choices && 
                 jsonData.choices[0]?.delta?.content) {
-              extractedContent += jsonData.choices[0].delta.content;
+              // Add content directly from JSON to preserve all characters including newlines
+              const content = jsonData.choices[0].delta.content;
+              // This preserves any '\n' characters in the content
+              extractedContent += content;
             }
           } catch (jsonError) {
             console.error('Error parsing JSON in stream:', jsonError);
