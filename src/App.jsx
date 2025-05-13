@@ -25,6 +25,7 @@ function App() {
 
   const MoonIcon = getIcon('Moon');
   const SunIcon = getIcon('Sun');
+  const WavesIcon = getIcon('Waves');
   
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -41,7 +42,7 @@ function App() {
               transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 5 }}
               className="text-primary"
             >
-              {getIcon('Waves')({ size: 28 })}
+              <WavesIcon size={28} />
             </motion.div>
             <h1 className="text-2xl font-bold text-primary dark:text-primary-light">ClaudeFlow</h1>
           </div>

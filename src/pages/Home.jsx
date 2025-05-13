@@ -11,6 +11,8 @@ function Home() {
   const FileTextIcon = getIcon('FileText');
   const ArrowRightIcon = getIcon('ArrowRight');
   
+  
+  
   return (
     <div className="flex flex-col space-y-8">
       <section className="text-center max-w-3xl mx-auto">
@@ -57,7 +59,7 @@ function Home() {
               }`}
             >
               <div className="flex items-center gap-2">
-                <FileTextIcon className="w-4 h-4" />
+                <FileTextIcon size={16} className="w-4 h-4" />
                 <span>Text Converter</span>
               </div>
             </button>
@@ -70,7 +72,7 @@ function Home() {
               }`}
             >
               <div className="flex items-center gap-2">
-                <CodeIcon className="w-4 h-4" />
+                <CodeIcon size={16} className="w-4 h-4" />
                 <span>About</span>
               </div>
             </button>
