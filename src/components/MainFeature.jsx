@@ -81,9 +81,13 @@ function MainFeature() {
 
   const handleCopyToClipboard = () => {
     if (outputText) {
-      navigator.clipboard.writeText(outputText)
-        .then(() => toast.success('Copied to clipboard!'))
-        .catch(err => toast.error('Failed to copy text'));
+      try {
+        navigator.clipboard.writeText(outputText)
+          .then(() => toast.success('Copied to clipboard!'))
+          .catch(err => toast.error('Failed to copy: ' + err.message));
+      } catch (err) {
+        toast.error('Failed to copy: ' + err.message);
+      }
     }
   };
   
@@ -147,7 +151,8 @@ function MainFeature() {
               // Add content directly from JSON to preserve all characters including newlines
               const content = jsonData.choices[0].delta.content;
               // This preserves any '\n' characters in the content
-              extractedContent += content;
+              // Replace literal '\n' with actual newlines
+              extractedContent += content.replace(/\\n/g, '\n');
             }
           } catch (jsonError) {
             console.error('Error parsing JSON in stream:', jsonError);
@@ -189,9 +194,10 @@ function MainFeature() {
         }
         
         // Clean up extra spaces and format
+        // Careful not to remove newlines when cleaning up spaces
         processedText = processedText
-          .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
-          .replace(/\n\s*\n/g, '\n\n'); // Keep paragraph breaks
+          .replace(/[ \t]+/g, ' ') // Replace multiple horizontal spaces with a single space
+          .replace(/\n{3,}/g, '\n\n'); // Normalize multiple newlines to max 2
         
         // Preserve paragraphs if enabled
         if (settings.preserveParagraphs) {
@@ -455,7 +461,7 @@ function MainFeature() {
             </div>
             
             <div className="p-6 bg-surface-50/70 dark:bg-surface-800/30 rounded-b-xl">
-              <pre ref={outputRef} className="whitespace-pre-wrap font-sans text-surface-800 dark:text-surface-100">
+              <pre ref={outputRef} className="whitespace-pre-wrap break-words font-sans text-surface-800 dark:text-surface-100">
                 {outputText}
               </pre>
             </div>
