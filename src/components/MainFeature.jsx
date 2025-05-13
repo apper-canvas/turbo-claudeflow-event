@@ -106,6 +106,7 @@ function MainFeature() {
     setInputText('');
     setOutputText('');
     setHasOutput(false);
+    toast.info('Input and output cleared');
   };
   
   const toggleSetting = (setting) => {
@@ -113,6 +114,48 @@ function MainFeature() {
       ...prev,
       [setting]: !prev[setting]
     }));
+  };
+
+  const processClaudeStream = (text) => {
+    // Return original text if it doesn't look like a Claude stream
+    if (!text.includes('data: {')) {
+      return text;
+    }
+
+    try {
+      // Split by lines and process each data: line
+      const lines = text.split('\n');
+      let extractedContent = '';
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        // Skip empty lines
+        if (!trimmedLine) continue;
+        
+        // Check if line starts with data:
+        if (trimmedLine.startsWith('data:')) {
+          // Extract JSON part after data:
+          const jsonStr = trimmedLine.substring(5).trim();
+          if (!jsonStr || jsonStr === '[DONE]') continue;
+          
+          try {
+            const jsonData = JSON.parse(jsonStr);
+            // Only process content_delta events with actual content
+            if (jsonData.event === 'content_delta' && 
+                jsonData.choices && 
+                jsonData.choices[0]?.delta?.content) {
+              extractedContent += jsonData.choices[0].delta.content;
+            }
+          } catch (jsonError) {
+            console.error('Error parsing JSON in stream:', jsonError);
+          }
+        }
+      }
+      return extractedContent || text; // Return extracted content or original if nothing was extracted
+    } catch (error) {
+      console.error('Error processing Claude stream:', error);
+      return text; // Return original text on error
+    }
   };
 
   const handleConvert = () => {
@@ -126,7 +169,11 @@ function MainFeature() {
     // Simulate processing delay for better UX
     setTimeout(() => {
       try {
-        let processedText = inputText;
+        // First, process Claude's streaming format if present
+        let processedText = processClaudeStream(inputText);
+        
+        // Log the initial extraction result
+        console.log('Extracted content from stream:', processedText.substring(0, 100) + '...');
         
         // Remove timestamps (like [14:23] or 11:45:02)
         if (settings.removeTimestamps) {
@@ -279,7 +326,7 @@ function MainFeature() {
             <div>
               <h2 className="text-xl font-semibold">Claude Input Text</h2>
               <p className="text-surface-500 dark:text-surface-400 text-sm mt-1">
-                Paste Claude's streamed response or upload a text file
+                Paste Claude's JSON stream or upload a text file
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -421,16 +468,15 @@ function MainFeature() {
         <h3 className="text-lg font-semibold mb-2">Example of Claude's Stream Format</h3>
         <div className="bg-surface-100 dark:bg-surface-700 rounded-lg p-4 mb-4 overflow-x-auto text-sm">
           <code className="whitespace-pre-wrap text-surface-700 dark:text-surface-300">
-{`[10:23:45] The quick brown fox jumps over
-[10:23:46] The quick brown fox jumps over the lazy dog. This
-[10:23:47] The quick brown fox jumps over the lazy dog. This is
-[10:23:48] The quick brown fox jumps over the lazy dog. This is an
-[===>     ]
-[10:23:49] The quick brown fox jumps over the lazy dog. This is an example
-[10:23:50] The quick brown fox jumps over the lazy dog. This is an example of 
-[10:23:51] The quick brown fox jumps over the lazy dog. This is an example of Claude's
-[=====>   ]
-[10:23:52] The quick brown fox jumps over the lazy dog. This is an example of Claude's streamed response.`}
+{`data: {"id":"msg123","model":"claude-3","event":"content_delta","choices":[{"delta":{"content":"The quick "},"finish_reason":null}]}
+
+data: {"id":"msg123","model":"claude-3","event":"content_delta","choices":[{"delta":{"content":"brown fox "},"finish_reason":null}]}
+
+data: {"id":"msg123","model":"claude-3","event":"content_delta","choices":[{"delta":{"content":"jumps over "},"finish_reason":null}]}
+
+data: {"id":"msg123","model":"claude-3","event":"content_delta","choices":[{"delta":{"content":"the lazy dog."},"finish_reason":null}]}
+
+data: {"id":"msg123","model":"claude-3","event":"finish_reason","choices":[{"delta":{"content":null},"finish_reason":"stop"}]}`}
           </code>
         </div>
         
@@ -438,8 +484,9 @@ function MainFeature() {
         <ul className="list-disc pl-5 space-y-1 text-surface-700 dark:text-surface-300">
           <li>Removes timestamps like [10:23:45]</li>
           <li>Removes progress bars like [====>   ]</li>
-          <li>Cleans up repeated partial lines</li>
-          <li>Formats paragraphs properly</li>
+          <li>Extracts content from Claude's JSON stream format</li>
+          <li>Combines partial content from streaming responses</li>
+          <li>Formats text with proper paragraphs</li>
           <li>Produces clean, readable text</li>
         </ul>
       </motion.div>
