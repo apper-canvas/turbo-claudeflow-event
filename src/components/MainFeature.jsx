@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import getIcon from '../utils/iconUtils';
 
@@ -18,6 +19,7 @@ function MainFeature() {
   
   const fileInputRef = useRef(null);
   const outputRef = useRef(null);
+  const navigate = useNavigate();
   
   // Declare all icons upfront
   const FileUpIcon = getIcon('FileUp');
@@ -223,8 +225,12 @@ function MainFeature() {
         // Final cleanup
         processedText = processedText.trim();
         
-        setOutputText(processedText);
-        setHasOutput(true);
+        // Save the processed text to localStorage
+        localStorage.setItem('convertedText', processedText);
+        
+        // Navigate to the view page instead of showing the text here
+        navigate('/view');
+        
         toast.success('Text converted successfully!');
       } catch (error) {
         toast.error('Error converting text: ' + error.message);

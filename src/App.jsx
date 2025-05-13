@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion } from 'framer-motion';
 import Home from './pages/Home';
+import ConvertedTextView from './pages/ConvertedTextView';
 import NotFound from './pages/NotFound';
 import getIcon from './utils/iconUtils';
 
@@ -59,6 +60,7 @@ function App() {
       <main className="flex-grow container mx-auto px-4 md:px-6 py-6">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/view" element={<ConvertedTextView />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
