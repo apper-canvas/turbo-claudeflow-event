@@ -71,7 +71,12 @@ function MainFeature() {
     const reader = new FileReader();
     reader.onload = (e) => {
       setInputText(e.target.result);
-      toast.success(`Loaded ${file.name}`);
+      // Automatically convert the text after loading the file
+      // Using setTimeout to ensure the state is updated before conversion
+      setTimeout(() => {
+        handleConvert();
+        toast.success(`Loaded and converted ${file.name}`);
+      }, 100);
     };
     reader.onerror = () => {
       toast.error('Error reading file');
